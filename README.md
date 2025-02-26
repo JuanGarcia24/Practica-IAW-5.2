@@ -10,7 +10,7 @@
 
 El objetivo de esta práctica es desplegar un sitio Wordpress en AWS utilizando Docker y Docker Compose, dónde automatizaremos el despligue de Wordpress incluyendo la base de datos de MySQL, PHPMyAdmin y con portal HTTPS aseguraremos una conexión segura a través de nuestro dominio con un certificado SSL.
 
->[!**NOTA**]  
+>[!NOTA]  
 >Para esta práctica, usaremos para los servicios a implementar, imágenes de Docker Hub de forma que para cada servicio se usen las siguientes:
 
 - **wordpress:** bitnami/wordpress.
