@@ -194,37 +194,11 @@ Una vez redactados los comandos útiles, probaremos la ejecución del script a m
 
 ![Ejecución Docker Compose](./Imagenes/Docker.png)
 
-Tras ejecutar el script, nos dirigimos a la página de nuestro dominio y cómo podemos observar aparecerá la página de instalación de PrestaShop
+
+Tras ejecutar el script, nos dirigimos a la página de nuestro dominio y cómo podemos observar cargará nuestro sitio de Wordpress. Si nos fijamos, cargan correctamente los datos ya qué cómo "Título del Sitio" un nombre personalizado y tras implementarlo, podemos ver que el nombre figura correctamente.
 
 
-![Instalador de PrestaShop](./Imagenes/Instalador.png)
-
-Seleccionamos el idioma y seguimos.
-
-En siguiente lugar, aparecerá la página de las condiciones, las aceptamos sin mayor importancia y avanzamos.
-
-![Condiciones](./Imagenes/Condiciones.png)
-
-La siguiente es el ajuste de los datos, introducimos nuestros datos así cómo un nombre para la tienda y ámbito, en mi caso he activado la casilla "Activar SSL" ya que la página va a ser segura.
-
-El siguiente paso será ajuste de configuración del contenido de nuestra tienda, aceptamos y seguimos.
-
-![Contenido Tienda](./Imagenes/Contenido.png)
-
-
-Lo siguiente en realizar será la introducción de algunos datos de conexión hacia la base de datos, en docker, no hay que declarar IPs sino nombres de servicio, por lo que en la dirección de nuestra base de datos introducimos "mysql", introducimos los demás datos acorde con las variables definidas en nuestro archivo .env, si la comprobación aparece en verde quiere decir que la conexión se ha establecido con éxito.
-
-
-Tras aceptar, prestashop empezará a crear su base de datos en el servidor de MySQL
-
-![Creación de la base de datos](./Imagenes/Creación_BBDD.png)
-
-Tras unos minutos, prestashop indicará que se ha instalado con éxito, nos indicará el correo electrónico configurado así cómo la contraseña, ya que estos datos son los de acceso para la administración de la tienda.
-
-
-Tras aceptar el aviso, ya habrá cargado nuestra tienda.
-
-![Tienda](./Imagenes/Tienda.png)
+![Sitio Página de Wordpress](./Imagenes/Sitio.png)
 
 
 ### Detalles de nuestro Certificado
