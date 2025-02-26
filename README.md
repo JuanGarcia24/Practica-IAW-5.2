@@ -37,83 +37,103 @@ El objetivo de esta práctica es desplegar un sitio Wordpress en AWS utilizando 
    
    ```bash
 
-  version: '3.4'
+    version: '3.8'
 
-  services:
+    services:
+    wordpress:
+        image: bitnami/wordpress
+        environment:
+        - WORDPRESS_DATABASE_USER=${WORDPRESS_DATABASE_USER}
+        - WORDPRESS_DATABASE_PASSWORD=${WORDPRESS_DATABASE_PASSWORD}
+        - WORDPRESS_DATABASE_HOST=${WORDPRESS_DATABASE_HOST}
+        - WORDPRESS_DATABASE_NAME=${WORDPRESS_DATABASE_NAME}
+        - WORDPRESS_BLOG_NAME=${WORDPRESS_BLOG_NAME}
+        - WORDPRESS_USERNAME=${WORDPRESS_USERNAME}
+        - WORDPRESS_PASSWORD=${WORDPRESS_PASSWORD}
+        - WORDPRESS_EMAIL=${WORDPRESS_EMAIL}
+        volumes:
+        - wordpress_data:/bitnami/wordpress
+        depends_on:
+        - mysql
+        restart: always
+        networks:
+        - frontend-network
+        - backend-network
+
+
     mysql:
-      image: mysql:9.1
-      ports: 
-        - 3306:3306
-      environment: 
+        image: mysql:8.0
+        environment:
         - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
         - MYSQL_DATABASE=${MYSQL_DATABASE}
         - MYSQL_USER=${MYSQL_USER}
         - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      volumes: 
+        volumes:
         - mysql_data:/var/lib/mysql
-      networks: 
+        networks:
         - backend-network
-      restart: always
-    
-    phpmyadmin:
-      image: phpmyadmin:5.2.1
-      ports:
-        - 8080:80
-      environment: 
-        - PMA_ARBITRARY=1
-      networks: 
-        - backend-network
-        - frontend-network
-      restart: always
-      depends_on: 
-        - mysql
+        restart: always
 
-    prestashop:
-      image: prestashop/prestashop:8
-      environment: 
-        - DB_SERVER=mysql
-      volumes:
-        - prestashop_data:/var/www/html
-      networks: 
-        - backend-network
-        - frontend-network
-      restart: always
-      depends_on: 
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin  
+        ports:
+        - 8080:80
+        environment:
+        - PMA_HOST=mysql
+        depends_on:
         - mysql
+        networks:
+        - frontend-network
+        restart: always
 
     https-portal:
-      image: steveltn/https-portal:1
-      ports:
-        - 80:80
+        image: steveltn/https-portal
+        ports:
         - 443:443
-      restart: always
-      environment:
-        DOMAINS: "${DOMAIN} -> http://prestashop:80"
-        STAGE: 'production'
-      networks:
+        - 80:80
+        environment:
+        - DOMAINS=${DOMAIN} -> http://wordpress:8080
+        - STAGE=production
+        depends_on:
+        - wordpress
+        networks:
         - frontend-network
+        restart: always
 
-  volumes:
+    volumes:
+    wordpress_data:
     mysql_data:
-    prestashop_data:
 
-  networks: 
-    backend-network:
+    networks:
     frontend-network:
-
+    backend-network:
    ```
 
 
 Dado el contenido del archivo entero iremos desglosándo poco a poco explicando la función de cada bloque de comandos.
 
+![Wordpress](./Imagenes/Wordpress.png)
+
+En primer lugar, definimos la versión del formato del archivo, siéndo la versión 3.8, compatible con las versiones más recientes de Docker Compose.
+
+En segundo lugar, declaramos que el servicio va a ser "wordpress" y le indicamos la imagen, en este caso será la de bitnami.
+
+Posteriormente, indicaremos las variables necesarias (definidas en nuestro archivo .env) para que wordpress pueda funcionar correctamente en nuestro entorno.
+
+Indicaremos también el volumen de datos, en este caso será el volumen persistente, dónde se almacenará los archivos y configuración de Wordpress en la ruta "/bitnami/wordpress".
+
+Ajustaremos la dependencia entre servicios, de forma que MySQL inicie antes que Wordpress.
+
+Por último sobre este servicio, asignamos las redes, que en este caso trabajaremos con la red frontend y backend.
+
+
+
 ![MySQL](./Imagenes/MySQL.png)
 
-En primer bloque, declaramos que el servicio va a ser llamado "mysql", le especificaremos la imagen oficial de MySQL, que en este caso será la versión 9.1 de Docker Hub.
+En primer bloque, declaramos que el servicio va a ser llamado "mysql", le especificaremos la imagen de MySQL, que en este caso será la versión 8.0 de Docker Hub.
 
-Especificaremos el puerto correspondiente que en este caso será el 3306 típico de MySQL. Especificando el mismo puerto tanto para la máquina host cómo para el puerto de dentro del contenedor.
 
-Le indicaremos el nombre de usuario de MySQL, contraseña así cómo nombre de base de datos.
-
+Le indicaremos mediante las variables almacenadas la contraseña root de MySQL, nombre de la base de datos, nombre de usuario así cómo contraseña de dicho usuario.
 
 Definiremos también el volumen para la persistencia de datos, que en este caso será el directorio "/var/lib/mysql".
 
@@ -122,45 +142,38 @@ Indicaremos la red de conexión, que en este caso será la red backend y por úl
 
 ![PHPMyAdmin](./Imagenes/PHPMyAdmin.png)
 
-En este caso, definiremos el servicio phpmyadmin, dónde le especificamos la imagen de phpmyadmin así cómo versión, le indicaremos los puertos de forma que en el host (navegador) su puerto sea el 8080, pero dentro del contenedor su puerto sea el 80.
+En este caso, definiremos el servicio phpmyadmin, dónde le especificamos la imagen de phpmyadmin, le indicaremos los puertos de forma que en el host (navegador) su puerto sea el 8080, pero dentro del contenedor su puerto sea el 80.
 
-Siguiendo, mediante la opción "PMA_ARBITRARY=1", permitirá conectarse a cualquier servidor MySQL.
-
-En siguiente lugar, le especificaremos las redes que en este caso utilizará la red backend y frontend.
-
-Al igual que MySQL, le aplicaremos la correspondiente política de reinicio por si el sistema falla.
+Siguiendo, le indicaremos mediante la variable de entorno "PMA_HOST" el nombre del contenedor con el que queremos conectarnos desde phpMyAdmin.
 
 El paso siguiente será indicarle la dependencia con MySQL, significando que PHPMyAdmin se iniciará después de que MySQL esté en marcha.
 
-En siguiente lugar, procedemos a la explicación de los parámetros referentes a prestashop.
+En siguiente lugar, le especificaremos las redes que en este caso utilizará la red backend.
+
+Al igual que MySQL, le aplicaremos la correspondiente política de reinicio por si el sistema falla.
 
 
-![PrestaShop](./Imagenes/PrestaShop.png)
+En siguiente y último lugar, procedemos a la explicación de los parámetros referentes a Portal HTTPS.
 
-En primer lugar cómo es de esperar, declaramos el servicio prestashop, después le indicamos la imagen a usar, que será la de prestashop en su versión nº 8, le especificaremos también la variable indicando el servidor MySQL a usar.
-
-Posteriormente definimos los volúmenes para la persistencia de datos, que en este caso, prestashop estará alojado en el directorio "/var/www/html". Le indicamos también las redes que queremos que esté conectado, en este caso será la red frontend y backend.
-
-Ajustamos la política de reinicio y por último le especificamos también la dependencia con MySQL, para que arranque una vez que MySQL esté en marcha.
-
-
-Procedemos a explicar los parámetros del servicio Portal HTTPS.
 
 ![Portal HTTPS](./Imagenes/HTTPS-PORTAL.png)
 
 Cómo es de esperar, declaramos el servicio https-portal actuándo cómo servidor proxy inverso con soporte HTTPS.
 
-Le indicamos la imagen a usar, en este caso es "steveltn/https-portal:1" de forma que proporcione un proxy NGINx con certificados SSL firmados automáticos.
+Le indicamos la imagen a utilizar, en este caso será "steveltn/https-portal" de forma que proporcione un proxy NGINx con certificados SSL firmados automáticos.
 
 Le indicamos los puertos, al ser una tecnología relacionada con HTTP y HTTPS, le indicaremos sus puertos correspondientes, tanto cómo el 80 y el 443.
 
-Ajustamos la misma política de reinicio al igual que en los demás servicios.
-
-En la sección de importar las variables de entorno, indicamos que defina el dominio que apuntará a PrestaShop, redirigiendo el tráfico hacia el contenedor de prestashop en el puerto 80, y especificándole que tome el valor de la variable para definir el dominio personalizado.
+En la sección de las variables de entorno, indicamos que defina el dominio que apuntará a Wordpress, redirigiendo el tráfico hacia el contenedor de Wordpress en el puerto 8080, y especificándole que tome el valor de la variable para definir el dominio personalizado.
 
 El parámetro "STAGE: 'production'" indica que el entorno es de producción, y que se usarán certificados reales de Let´s Encrypt.
 
-Por último, indicamos que se conecte a la red frontend para comunicarse con prestashop.
+Especificamos que el servicio no empieze hasta que Wordpress no esté iniciado correctamente.
+
+También le indicaremos que se conecte a la red frontend para comunicarse con WordPress.
+
+Y por último, ajustamos la misma política de reinicio al igual que en los demás servicios.
+
 
 En último lugar del archivo, indicaremos los volúmenes para la persistencia de datos y le indicaremos las redes, que cómo hemos mencionado anteriormente, hemos definido la red frontend y backend.
 
