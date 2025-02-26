@@ -24,7 +24,7 @@ El objetivo de esta práctica es desplegar un sitio Wordpress en AWS utilizando 
 >[!IMPORTANT]  
 >Para esta práctica, crearemos un nuevo nombre de dominio personalizado dónde asociaremos la dirección IP de nuestra máquina, para posteriormente establecer el dominio cómo seguro.
 
-![Hostnames](./Imagenes/Hostnames.png)
+![Hostnames](./Imagenes/HostNames.png)
 
 
 ## Desarrollo de la práctica 
