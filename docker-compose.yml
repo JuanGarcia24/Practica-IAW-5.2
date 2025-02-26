@@ -2,16 +2,18 @@ version: '3.8'
 
 services:
   wordpress:
-    image: bitnami/wordpress:latest
-    ports:
-      - 80:80
+    image: bitnami/wordpress
     environment:
-      - WORDPRESS_DB_HOST=mysql
-      - WORDPRESS_DB_NAME=${MYSQL_DATABASE}
-      - WORDPRESS_DB_USER=${MYSQL_USER}
-      - WORDPRESS_DB_PASSWORD=${MYSQL_PASSWORD}
+      - WORDPRESS_DATABASE_USER=${WORDPRESS_DATABASE_USER}
+      - WORDPRESS_DATABASE_PASSWORD=${WORDPRESS_DATABASE_PASSWORD}
+      - WORDPRESS_DATABASE_HOST=${WORDPRESS_DATABASE_HOST}
+      - WORDPRESS_DATABASE_NAME=${WORDPRESS_DATABASE_NAME}
+      - WORDPRESS_BLOG_NAME=${WORDPRESS_BLOG_NAME}
+      - WORDPRESS_USERNAME=${WORDPRESS_USERNAME}
+      - WORDPRESS_PASSWORD=${WORDPRESS_PASSWORD}
+      - WORDPRESS_EMAIL=${WORDPRESS_EMAIL}
     volumes:
-      - wordpress_data:/var/www/html  
+      - wordpress_data:/bitnami/wordpress
     depends_on:
       - mysql
     restart: always
@@ -19,10 +21,9 @@ services:
       - frontend-network
       - backend-network
 
+
   mysql:
     image: mysql:8.0
-    ports:
-      - 3306:3306
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
@@ -30,34 +31,35 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
-    restart: always
     networks:
       - backend-network
+    restart: always
 
   phpmyadmin:
-    image: phpmyadmin:5.1
+    image: phpmyadmin/phpmyadmin  
     ports:
       - 8080:80
     environment:
       - PMA_HOST=mysql
     depends_on:
       - mysql
-    restart: always
     networks:
       - frontend-network
-      - backend-network
+    restart: always
 
   https-portal:
-    image: steveltn/https-portal:1
+    image: steveltn/https-portal
     ports:
-      - 80:80
       - 443:443
-    restart: always
+      - 80:80
     environment:
-      DOMAINS: "${DOMAIN} -> http://wordpress:80"
-      STAGE: 'production'
+      - DOMAINS=${DOMAIN} -> http://wordpress:8080
+      - STAGE=production
+    depends_on:
+      - wordpress
     networks:
       - frontend-network
+    restart: always
 
 volumes:
   wordpress_data:
